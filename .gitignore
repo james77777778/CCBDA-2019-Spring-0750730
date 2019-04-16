@@ -1,0 +1,15 @@
+# data
+*.tsv
+*.csv
+
+# pdf
+*.pdf
+
+# virtualenv
+venv
+
+# jupyter
+.ipynb_checkpoints
+
+# cache
+__pycache__
