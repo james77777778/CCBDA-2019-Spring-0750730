@@ -1,6 +1,7 @@
 # data
 *.tsv
 *.csv
+*.txt
 
 # pdf
 *.pdf
