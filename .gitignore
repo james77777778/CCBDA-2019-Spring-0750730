@@ -5,6 +5,8 @@
 
 # pdf
 *.pdf
+*.odt
+*.odt#
 
 # virtualenv
 venv
