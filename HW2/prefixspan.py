@@ -77,4 +77,4 @@ if __name__ == '__main__':
     prefix = []
     prefixspan(db, minsup, prefix, result)
 
-    dump_result(result, 'output.txt')
+    dump_result(result, 'output_2.txt')
