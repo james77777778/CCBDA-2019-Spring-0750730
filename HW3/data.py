@@ -10,7 +10,7 @@ class StockDataset(Dataset):
         all_data = []
         self.scalers = []
         for data in stocks_data:
-            scaler = MinMaxScaler((-1, 1))
+            scaler = MinMaxScaler((0, 1))
             data = data.reshape(-1, 1)
             scaler.fit(data)
             data = scaler.transform(data)
