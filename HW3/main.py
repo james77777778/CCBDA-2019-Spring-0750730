@@ -1,3 +1,4 @@
+import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,10 +10,15 @@ from model import Stock_LSTM
 
 
 '''
-import os
 if 'HW3' not in os.getcwd():
     os.chdir('HW3')
 '''
+# make dir
+folder = ["models", "results"]
+for f in folder:
+    if not os.path.exists(f):
+        os.makedirs(f)
+
 # params
 batch_size = 60
 input_size = 20
@@ -94,7 +100,7 @@ for i, name in enumerate(stock_names):
                 "name": name,
                 "epoch": epoc,
                 "model_state_dict": net.state_dict()},
-                "best_model[{}].pt".format(name)
+                "models/best_model[{}].pt".format(name)
             )
         all_loss.append(epoch_loss)
     print('Finished Training, best loss= {:.7f}, i= {}'.format(
@@ -107,7 +113,7 @@ for i, name in enumerate(stock_names):
         [data["Target"] for data in train_dataset],
         'r-')
     plt.plot(np.arange(drop_train, n_train, 1.0), best_plot, 'b-')
-    plt.savefig("result[{}].png".format(name))
+    plt.savefig("results/result[{}].png".format(name))
     plt.figure()
     plt.plot(all_loss)
-    plt.savefig("loss[{}].png".format(name))
+    plt.savefig("results/loss[{}].png".format(name))
