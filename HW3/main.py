@@ -1,5 +1,6 @@
 import os
-import json
+import sys
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -23,11 +24,11 @@ for f in folder:
 batch_size = 60
 input_size = 20
 hidden_size = 256
-nepoch = 700
+nepoch = 600
 
 # load data
-with open('stocks.json', 'r') as f:
-    stocks_dict = json.load(f)
+with open('stocks.pkl', 'rb') as f:
+    stocks_dict = pickle.load(f)
 stock_names = [
     'INTC', 'AMD', 'CSCO', 'AAPL', 'MU', 'NVDA', 'QCOM', 'AMZN',
     'NFLX', 'FB', 'GOOG', 'BABA', 'EBAY', 'IBM', 'XLNX', 'TXN', 'NOK',
@@ -64,9 +65,13 @@ for i, name in enumerate(stock_names):
     optimizer = torch.optim.Adam(net.parameters(), lr=0.00005)
 
     all_loss = []
+    all_valid_loss = []
     best_loss = [100, -1]
     best_plot = 0
+    best_model = 0
     for epoc in range(nepoch):
+        # train
+        net.train()
         running_loss = 0.0
         epoch_loss = 0.0
         pred_plot = np.empty([len(train_loader.dataset)])
@@ -86,23 +91,44 @@ for i, name in enumerate(stock_names):
             optimizer.step()
             running_loss += loss.item()
             if i % 5 == 0:    # print every 2 mini-batches
-                print('[{}, {}] loss: {:.7f}'.format(
+                sys.stdout.write("\r"+'[{}, {}] loss: {:.7f}'.format(
                     epoc+1, i+1, running_loss/2))
                 running_loss = 0.0
             bs = batch_size
             pred_plot[i*bs:i*bs+bs] = pred.cpu().detach().numpy()
         epoch_loss /= len(train_dataset)
-        if epoch_loss < best_loss[0]:
-            best_loss[0] = epoch_loss
+        all_loss.append(epoch_loss)
+        # valid
+        net.eval()
+        valid_loss = 0.0
+        valid_pred_plot = np.empty([len(valid_loader.dataset)])
+        h_state = torch.zeros(2, 1, hidden_size).to(device)
+        c_state = torch.zeros(2, 1, hidden_size).to(device)
+        for i, data in enumerate(valid_loader):
+            inputs, labels = data['Sequence'], data['Target']
+            inputs, labels = inputs.to(device), labels.to(device)
+            labels = labels.squeeze()
+            pred, (h_state, c_state) = net(inputs, h_state, c_state)
+            pred = pred[:, 29, :].squeeze()
+            h_state = Variable(h_state.data)
+            c_state = Variable(c_state.data)
+            loss = criterion(pred, labels)
+            valid_loss += loss.item()*inputs.size(0)
+            bs = 1
+            valid_pred_plot[i*bs:i*bs+bs] = pred.cpu().detach().numpy()
+        valid_loss /= len(train_dataset)
+        if valid_loss < best_loss[0]:
+            best_loss[0] = valid_loss
             best_loss[1] = epoc
-            best_plot = pred_plot
+            best_plot = [pred_plot, valid_pred_plot]
             torch.save({
                 "name": name,
                 "epoch": epoc,
                 "model_state_dict": net.state_dict()},
                 "models/best_model[{}].pt".format(name)
             )
-        all_loss.append(epoch_loss)
+        all_valid_loss.append(valid_loss)
+    print()
     print('Finished Training, best loss= {:.7f}, i= {}'.format(
         best_loss[0], best_loss[1]))
 
@@ -112,8 +138,17 @@ for i, name in enumerate(stock_names):
         np.arange(drop_train, n_train, 1.0),
         [data["Target"] for data in train_dataset],
         'r-')
-    plt.plot(np.arange(drop_train, n_train, 1.0), best_plot, 'b-')
-    plt.savefig("results/result[{}].png".format(name))
+    plt.plot(np.arange(drop_train, n_train, 1.0), best_plot[0], 'b-')
+    plt.savefig("results/train_result[{}].png".format(name))
     plt.figure()
-    plt.plot(all_loss)
+    plt.plot(
+        np.arange(0.0, n_valid, 1.0),
+        [data["Target"] for data in valid_dataset],
+        'r-')
+    plt.plot(np.arange(0.0, n_valid, 1.0), best_plot[1], 'b-')
+    plt.savefig("results/valid_result[{}].png".format(name))
+    plt.figure()
+    plt.plot(all_loss, label="train")
+    plt.plot(all_valid_loss, label="valid")
+    plt.legend(loc='upper left')
     plt.savefig("results/loss[{}].png".format(name))
