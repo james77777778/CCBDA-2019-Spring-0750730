@@ -1,5 +1,5 @@
 import os
-import pickle
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -26,8 +26,8 @@ hidden_size = 256
 nepoch = 700
 
 # load data
-with open('stocks.pkl', 'rb') as f:
-    stocks_dict = pickle.load(f)
+with open('stocks.json', 'r') as f:
+    stocks_dict = json.load(f)
 stock_names = [
     'INTC', 'AMD', 'CSCO', 'AAPL', 'MU', 'NVDA', 'QCOM', 'AMZN',
     'NFLX', 'FB', 'GOOG', 'BABA', 'EBAY', 'IBM', 'XLNX', 'TXN', 'NOK',
