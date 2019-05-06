@@ -32,18 +32,32 @@ predict_loader = DataLoader(
 pretrain = torch.load("models/best_model[{}].pt".format("INTC"))
 model = Stock_LSTM(input_size, hidden_size).to(device)
 model.load_state_dict(pretrain['model_state_dict'])
-
+model.eval()
 # predict
 h_state = torch.zeros(2, 1, hidden_size).to(device)
 c_state = torch.zeros(2, 1, hidden_size).to(device)
-for i, data in enumerate(predict_loader):
-    inputs = data['Sequence']
-    inputs = inputs.to(device)
-    pred, (h_state, c_state) = model(inputs, h_state, c_state)
-    pred = pred[:, 29, :].squeeze()
-    h_state = Variable(h_state.data)
-    c_state = Variable(c_state.data)
-    bs = 1
+with torch.no_grad():
+    for i, data in enumerate(predict_loader):
+        inputs = data['Sequence']
+        inputs = inputs.to(device)
+        pred, (h_state, c_state) = model(inputs, h_state, c_state)
+        pred = pred[:, 29, :].squeeze()
+        h_state = Variable(h_state.data)
+        c_state = Variable(c_state.data)
 
-print("last day: {}".format(inputs.cpu().numpy()))
-print("predict: {}".format(pred.cpu().detach().numpy()))
+scaler = predict_dataset.scalers[0]
+last_value = inputs.cpu().numpy()
+last_value = last_value[-1, 0]
+pred = pred.cpu().numpy()
+last_value = scaler.inverse_transform(last_value.reshape(-1, 1))
+pred = scaler.inverse_transform(pred.reshape(-1, 1))
+print("last day: {}".format(last_value))
+print("predict: {}".format(pred))
+
+label = -1
+rchange = np.abs(pred-last_value)/last_value
+if rchange < 0.02:
+    label = 1
+else:
+    label = 0 if pred > last_value else 2
+print("label: {}".format(label))

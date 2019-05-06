@@ -18,5 +18,8 @@ for name in stock_names:
     df_tic.dropna(inplace=True)
     stocks_dict[name] = df_tic.values.squeeze().tolist()
 
+last_day = str(df_tic.index[-1].date())
+with open('{}_stocks.json'.format(last_day), 'w') as f:
+    json.dump(stocks_dict, f)
 with open('stocks.json', 'w') as f:
     json.dump(stocks_dict, f)

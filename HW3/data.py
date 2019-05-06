@@ -16,7 +16,7 @@ class StockDataset(Dataset):
             data = scaler.transform(data)
             data = data.squeeze()
             window_data = []
-            for i in range(len(data)-window_size-1):
+            for i in range(len(data)-window_size):
                 window_data.append(data[i:i+window_size+1])
             window_data = np.array(window_data)
             all_data.append(window_data)
@@ -48,7 +48,7 @@ class TestStockDataset(Dataset):
             data = scaler.transform(data)
             data = data.squeeze()
             window_data = []
-            for i in range(len(data)-window_size):
+            for i in range(len(data)-window_size+1):
                 window_data.append(data[i:i+window_size])
             window_data = np.array(window_data)
             all_data.append(window_data)
