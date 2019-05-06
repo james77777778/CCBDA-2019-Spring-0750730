@@ -3,6 +3,7 @@
 *.csv
 output_1.txt
 output_2.txt
+result.txt
 *.png
 *.pkl
 *.json

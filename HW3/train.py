@@ -24,19 +24,22 @@ for f in folder:
 batch_size = 60
 input_size = 20
 hidden_size = 256
-nepoch = 600
+nepoch = 500
 
 # load data
-with open('stocks.json', 'rb') as f:
+with open('stocks.json', 'r') as f:
     stocks_dict = json.load(f)
 stock_names = [
     'INTC', 'AMD', 'CSCO', 'AAPL', 'MU', 'NVDA', 'QCOM', 'AMZN',
     'NFLX', 'FB', 'GOOG', 'BABA', 'EBAY', 'IBM', 'XLNX', 'TXN', 'NOK',
     'TSLA', 'MSFT', 'SNPS']
+
 all_data = []
 for name in stock_names:
     all_data.append(stocks_dict[name])
 all_data = np.array(all_data)
+dataset = StockDataset(all_data, 0)
+dataset.save_scalers("scalers.pkl")
 
 for i, name in enumerate(stock_names):
     # split train, valid
@@ -77,7 +80,7 @@ for i, name in enumerate(stock_names):
         pred_plot = np.empty([len(train_loader.dataset)])
         h_state = torch.zeros(2, batch_size, hidden_size).to(device)
         c_state = torch.zeros(2, batch_size, hidden_size).to(device)
-        for i, data in enumerate(train_loader):
+        for j, data in enumerate(train_loader):
             inputs, labels = data['Sequence'], data['Target']
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -90,12 +93,12 @@ for i, name in enumerate(stock_names):
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-            if i % 5 == 0:    # print every 2 mini-batches
+            if j % 5 == 0:    # print every 2 mini-batches
                 sys.stdout.write("\r"+'[{}, {}] loss: {:.7f}'.format(
-                    epoc+1, i+1, running_loss/2))
+                    epoc+1, j+1, running_loss/2))
                 running_loss = 0.0
             bs = batch_size
-            pred_plot[i*bs:i*bs+bs] = pred.cpu().detach().numpy()
+            pred_plot[j*bs:j*bs+bs] = pred.cpu().detach().numpy()
         epoch_loss /= len(train_dataset)
         all_loss.append(epoch_loss)
         # valid
