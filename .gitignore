@@ -9,6 +9,9 @@ result.txt
 *.json
 *.pt
 
+# results
+results
+
 # pdf
 *.pdf
 *.odt
