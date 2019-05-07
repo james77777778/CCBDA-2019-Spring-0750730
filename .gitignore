@@ -1,9 +1,7 @@
 # data
 *.tsv
 *.csv
-output_1.txt
-output_2.txt
-result.txt
+*.txt
 *.png
 *.pkl
 *.json
@@ -29,3 +27,6 @@ __pycache__
 
 # vscode
 .vscode
+
+# except
+!requirements.txt
