@@ -40,6 +40,7 @@ for i, name in enumerate(stock_names):
     # predict
     h_state = torch.zeros(2, 1, hidden_size).to(device)
     c_state = torch.zeros(2, 1, hidden_size).to(device)
+    preds = []
     with torch.no_grad():
         for j, data in enumerate(predict_loader):
             inputs = data['Sequence']
@@ -48,10 +49,13 @@ for i, name in enumerate(stock_names):
             pred = pred[:, 29, :].squeeze()
             h_state = Variable(h_state.data)
             c_state = Variable(c_state.data)
+            preds.append(pred.cpu().numpy())
     scaler = predict_dataset.scalers[i]
-    last_value = inputs.cpu().numpy()
-    last_value = last_value[0, 29, i]
-    pred = pred.cpu().numpy()
+    # last_value = inputs.cpu().numpy()
+    # last_value = last_value[0, 29, i]
+    # pred = pred.cpu().numpy()
+    last_value = preds[-2]
+    pred = preds[-1]
     last_value = scaler.inverse_transform(last_value.reshape(-1, 1))
     pred = scaler.inverse_transform(pred.reshape(-1, 1))
 
@@ -65,6 +69,6 @@ for i, name in enumerate(stock_names):
     print("predict: {}".format(pred))
     print("label: {}".format(label))
     labels.append(label)
-with open("result.txt", "w") as f:
+with open("results/result.txt", "w") as f:
     for n in labels:
         f.write("{}\n".format(n))
